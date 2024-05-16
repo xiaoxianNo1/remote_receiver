@@ -13,6 +13,7 @@ from esphome.const import (
     CONF_MEMORY_BLOCKS,
 )
 from esphome.core import CORE
+
 CONF_RMT_CHANNEL = "rmt_channel"
 
 AUTO_LOAD = ["remote_base"]
@@ -20,6 +21,8 @@ remote_receiver_ns = cg.esphome_ns.namespace("remote_receiver")
 RemoteReceiverComponent = remote_receiver_ns.class_(
     "RemoteReceiverComponent", remote_base.RemoteReceiverBase, cg.Component
 )
+
+ToleranceMode = remote_base.remote_base_ns.enum('ToleranceMode')
 
 MULTI_CONF = True
 CONFIG_SCHEMA = remote_base.validate_triggers(
@@ -46,7 +49,6 @@ CONFIG_SCHEMA = remote_base.validate_triggers(
     ).extend(cv.COMPONENT_SCHEMA)
 )
 
-
 async def to_code(config):
     pin = await cg.gpio_pin_expression(config[CONF_PIN])
     if CORE.is_esp32:
@@ -61,7 +63,7 @@ async def to_code(config):
     await remote_base.build_triggers(config)
     await cg.register_component(var, config)
 
-    cg.add(var.set_tolerance(config[CONF_TOLERANCE]))
+    cg.add(var.set_tolerance(config[CONF_TOLERANCE], ToleranceMode.TOLERANCE_MODE_PERCENTAGE))
     cg.add(var.set_buffer_size(config[CONF_BUFFER_SIZE]))
     cg.add(var.set_filter_us(config[CONF_FILTER]))
     cg.add(var.set_idle_us(config[CONF_IDLE]))
